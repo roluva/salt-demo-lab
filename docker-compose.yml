@@ -1,0 +1,36 @@
+version: '2'
+
+services:
+  salt-master:
+    build: .
+    container_name: salt-master
+    hostname: salt-master
+    volumes:
+      - ./salt:/srv/salt
+    command: salt-master -l info
+
+  web-01:
+    build: .
+    container_name: web-01
+    hostname: web-01
+    depends_on:
+      - salt-master
+    ports:
+      - "8081:80"
+    command: >
+      bash -c "echo 'master: salt-master' > /etc/salt/minion.d/master.conf &&
+               echo 'id: web-01' > /etc/salt/minion_id &&
+               salt-minion -l info"
+
+  web-02:
+    build: .
+    container_name: web-02
+    hostname: web-02
+    depends_on:
+      - salt-master
+    ports:
+      - "8082:80"
+    command: >
+      bash -c "echo 'master: salt-master' > /etc/salt/minion.d/master.conf &&
+               echo 'id: web-02' > /etc/salt/minion_id &&
+               salt-minion -l info"
